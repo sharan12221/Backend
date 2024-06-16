@@ -49,7 +49,7 @@ const userSchema = new Schema({
 
 userSchema.pre("save", async function (next) {           //middelware (here we only have to use normal function)
     if(!this.isModified("password")) return next();     // by this if the user not making update or change in password then not go to bcrypt code
-    this.password = bcrypt.hash(this.password, 10)
+    this.password = await bcrypt.hash(this.password, 10)
     next()
 })     
 
