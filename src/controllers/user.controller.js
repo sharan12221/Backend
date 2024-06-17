@@ -5,6 +5,22 @@ import { User } from "./../models/user.model.js"
 import { uploadOnCloudinary } from "./../utils/cloudinary.js"
 import { ApiResponse } from "./../utils/ApiResponse.js"
 
+const generateAccessAndRefreshTokens = async(userId) => {
+    try{
+        const user = await User.findById(userId);
+        const accessToken = user.generateAccessToken();
+        const refreshToken = user.generateRefreshToken();
+
+        user.refreshToken = refreshToken;
+        await user.save({ validateBeforeSave: false });
+
+        return { accessToken, refreshToken }
+
+    }catch(e){
+        throw new ApiError(500, "Something went wrong , while generating refresh and access token")
+    }
+}
+
 const registerUser = asyncHandler( async (req, res) => {
     // steps to register user
     // get  user details from frontend i.e (postman)
@@ -81,4 +97,81 @@ const registerUser = asyncHandler( async (req, res) => {
 })
 
 
-export { registerUser }
+const loginUser = asyncHandler(async (req, res) => {
+    // req body -> data
+    // username or email
+    // find the user 
+    // password check
+    // access and refresh token 
+    // send cookie
+
+    const { email, username, password } = req.body;
+
+    if(!username || !email){
+        throw new ApiError(400, "username or email is required");
+    }
+
+    const user = await User.findOne({
+        $or: [{ username }, { email }]                      /// by this($or) we can find any one from the database (username or email)
+    })
+
+    if(!user){
+        throw new ApiError(404, "user does not exist");
+    }
+
+    const isPasswordValid = await user.isPasswordCorrect(password);
+
+    if(!isPasswordValid){
+        throw new ApiError(401, "Password Incorrect");
+    }
+
+    const { accessToken, refreshToken }=await generateAccessAndRefreshTokens(user._id);
+
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken");           // the selected fields are not send to user as return 
+
+    const options = {               //if we make true to  httpOnly and secure then it is not modifyable , only for view
+        httpOnly : true,
+        secure : true
+    }
+
+    return res
+    .status(200).cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+        new ApiResponse(                        /// we defile the structure of the ApiResponse in utils
+            200,
+            {
+                user: loggedInUser, accessToken,
+                refreshToken
+            },
+            "User logged in Successfully"
+        )
+    )
+})
+
+const logoutUser = asyncHandler(async (req, res) => {
+    await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: {
+                refreshToken : undefined
+            }
+        },
+        {
+            new : true
+        }
+    ) 
+
+    const options = {               //if we make true to  httpOnly and secure then it is not modifyable , only for view
+        httpOnly : true,
+        secure : true
+    }
+
+    return res.status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, {}, "User Loged Out"))
+    
+})
+
+export { registerUser, loginUser, logoutUser }
