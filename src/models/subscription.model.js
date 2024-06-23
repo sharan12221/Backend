@@ -5,11 +5,11 @@ const subscriptionSchema = new Schema({
         type: Schema.Types.ObjectId,  // who is subscribing
         ref: "User"
     },
-    channe: {
+    channel: {
         type: Schema.Types.ObjectId,  // one to whom 'subscriber' is subscribing 
         ref: "User"
     }
-});
+}, {timestamps: true});
 
 
 export const subscription = mongoose.model("Subscription", subscriptionSchema)
