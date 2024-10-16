@@ -8,6 +8,16 @@ import jwt from "jsonwebtoken";
 import { subscription } from "../models/subscription.model.js";
 import mongoose from "mongoose";
 
+const get = async(req, res) =>{
+    const resp = {
+        1:"===========================================",
+        2:"================= Welcome =================",
+        3:"==========================================="    
+    }
+    return res.status(201).json( new ApiResponse(200, resp, "User registerd Successfully"))
+
+}
+
 const generateAccessAndRefreshTokens = async(userId) => {
     try{
         const user = await User.findById(userId);
@@ -457,6 +467,7 @@ const getWatchHistory = asyncHandler( async(req, res) => {
 })
 
 export { 
+    get,
     registerUser, 
     loginUser, 
     logoutUser, 
