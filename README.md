@@ -8,7 +8,7 @@ docker push sharanwakade/backend
 docker run --name backend -p 3050:3050 backend
 
 docker run --env-file .env -p 3050:3050 your-app-image        //with env vars
-
+1
 
 # dockerfile
 
