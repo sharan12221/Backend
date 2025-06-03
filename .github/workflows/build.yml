@@ -1,4 +1,4 @@
-name: CI with SonarCloud
+name: SonarCloud analysis
 
 on:
   push:
@@ -11,8 +11,7 @@ permissions:
   pull-requests: read
 
 jobs:
-  build:
-    name: Build
+  analysis:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,50 +23,11 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install dependencies
-        run: npm ci
+      - run: npm install
 
-      - name: Run build
-        run: npm run build
+      - run: npm run test -- --coverage --coverageReporters=cobertura
 
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests
-        run: npm test
-
-  sonar-analysis:
-    name: SonarCloud Analysis
-    runs-on: ubuntu-latest
-    needs: test
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: SonarCloud Scan
+      - name: Analyze with SonarCloud
         uses: SonarSource/sonarcloud-github-action@v2.2.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -76,4 +36,12 @@ jobs:
             -Dsonar.projectKey=sharan12221_Backend
             -Dsonar.organization=sharan12221
             -Dsonar.sources=src
+            -Dsonar.tests=tests
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.test.inclusions=**/*.spec.ts
             -Dsonar.verbose=true
+
+      - name: Check SonarCloud Quality Gate
+        uses: SonarSource/sonarcloud-quality-gate-action@v1.1.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
