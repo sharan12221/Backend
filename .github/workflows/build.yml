@@ -17,5 +17,5 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_PROJECTKEY: sharan12221_Backend  # Replace with your actual project key
-          SONAR_ORGANIZATION: sharan12221  # Replace with your actual organization key
+          sonar.projectKey: sharan12221_Backend  # Replace with your actual project key
+          sonar.organization: sharan12221       # Replace with your actual organization key
