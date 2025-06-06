@@ -1,0 +1,32 @@
+name: Load ENV_FILE_DEV Secret
+
+on:
+  workflow_dispatch:
+
+jobs:
+  load-env:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Print raw ENV_FILE_DEV (optional)
+        run: echo "${{ secrets.ENV_FILE_DEV }}"
+
+      - name: Write .env file
+        run: |
+          echo "${{ secrets.ENV_FILE_DEV }}" > .env
+          cat .env
+
+      - name: Export env variables from .env
+        run: |
+          set -o allexport
+          source .env
+          set +o allexport
+
+      - name: Use environment variables
+        run: |
+          echo "SECRET_KEY is: $SECRET_KEY"
+          echo "DEBUG is: $DEBUG"
+          echo "EMAIL_HOST_USER is: $EMAIL_HOST_USER"
